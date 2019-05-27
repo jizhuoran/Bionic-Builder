@@ -2,6 +2,7 @@ Ubuntu 18.04 Bionic-Builder
 
 Bionic-Builder是创建Hikey970的Ubuntu镜像的All-In-One脚本。此脚本是一个交互式的脚本，借助Debootstrap，我们可以构建一个完整的Ubuntu 18.04的镜像。此脚本会自动设置必要的系统配置，因此无需手动编辑任何文件。此脚本可以执行以下操作。
 
+rootft下载地址:https://pan.baidu.com/s/1G8BaVutcc9taXdSfFYBBtg 提取码: ag5x
 
 	A)  通过apt下载基本的Ubuntu 18.04所需的包
 	
