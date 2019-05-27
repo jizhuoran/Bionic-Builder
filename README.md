@@ -1,97 +1,49 @@
 Ubuntu 18.04 Bionic-Builder
 
-The Bionic-Builder is a All-In-One build script for Hikey970. This script will interactively put together the Ubuntu 18.04 Bionic using Debootstrap. The configuration is a part of the script so there is no need to manually edit any files to get things working. The build script can perform the following operations.
+Bionic-Builder是创建Hikey970的Ubuntu镜像的All-In-One脚本。此脚本是一个交互式的脚本，借助Debootstrap，我们可以构建一个完整的Ubuntu 18.04的镜像。此脚本会自动设置必要的系统配置，因此无需手动编辑任何文件。此脚本可以执行以下操作。
 
-	A)  Downloads the Base packages needed for running Ubuntu 18.04
+
+	A)  通过apt下载基本的Ubuntu 18.04所需的包
 	
-	B)  Downloads and install the ARM64 Tool-Chain needed for building the kernel.
-		The tool-chain used can be found here....
-	https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads
-		gcc-arm-8.3-2019.03-x86_64-aarch64-linux-gnu
+	B)  下载并安装交叉编译内核所需的ARM64工具链：gcc-arm-8.3-2019.03-x86_64-aarch64-linux-gnu （https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads）
 
-	C) Downloads the Kernel Source needed for building the kernel.
-		This Kernel Source is configured specifically for Debain or Ubuntu Support.
-		The kernel source is located at... 
-		https://github.com/Bigcountry907/linux/tree/hikey970-v4.9-Debain-Working
-		Be sure to use the branch hikey970-v4.9-Debain-Working if you clone the kernel
-		not using the Bionic-Builder.
+	C)  下载内核源代码。此内核源码是专门为Debain或Ubuntu配置的 （https://github.com/Bigcountry907/linux/tree/hikey970-v4.9-Debain-Working）
 
-	D) Compiles the kernel and installs the Kernel the Device Tree and the Modules.
-		Everything is installed into the Ubuntu Bionic Image.
-		This eliminates the need to manually install these things.
+	D)  编译内核并安装内核设备树和模块。所有的一切都被安装在Ubuntu Bionic镜像中，无需任何手动配置
 
-	E) Interactively configures the login and wireless connection
-		Enter your desired username and password when prompted.
-		 Bionic now uses netplan as a network manager.
-		The 01-dhcp.yaml  configuration file is touchy. The spacing has to be exact.
-		The LAN will work on DCHP with no modification.
-		The WI-FI will work provided you enter the access-point name and password 
-		for your router. 
-		This way after the first boot you will be connected to the network.
+	E)  考虑到使用WIFI连接Hikey 970开发板的情况并不多，此版本移除了WIFI配置
 
-	F) Includes a First-Boot Initialization script
-		The initialization script will finish up the Ubuntu 18 Install.
-		It automatically updates and upgrades the system.
-		It installs tasksel and runs tasksel install standard to add the standard packages to the system.
-		The script will automatically install the XFCE4 / Xubuntu Desktop environment if you choose.
-		If you choose not to install a desktop then Ubuntu will run as Ubuntu Server.
+	F)  集成了一个叫做First-Boot初始化脚本。初始化脚本将完成Ubuntu 18安装：
 
-		The video is working properly so upon booting provided you are using a usb keyboard and usb Mouse
-		you can login and use the Terminal Console without UART. 
-		The typical UART Console is used also by connecting the usb-c on the side of the board 
-		(NOT NEXT TO HDMI) !!!
-		Use putty in windows or ssh in linux to access the serial console. You will only see the Grub Boot Menu 
-		over the serial console.
+        1. 自动更新和升级系统
+        2. 安装tasksel并运行tasksel install standard来将标准软件包添加到系统中
+        3. 如果你愿意，该脚本将自动安装XFCE4 / Xubuntu Desktop环境
+        4. 如果你选择不安装桌面，那么Ubuntu将作为Ubuntu Server运行 (推荐)
 
-	G) The Menu allows for modification of the Rootfs and the Kernel without rebuilding all
-		I have set things up so that you can build each part separately. You only need to run option 1 one time.
-		You can edit the files in ~/Bionic-Builder/Ubuntu-SRC/Build if needed.
-		You can change kernel configurations or update the kernel source in ~/Bionic-Builder/Kernel-SRC/linux
-		Option #4 can be used after changes are made to generate a new flash-able image.
+    G)  修复了HDMI无法正常显示的BUG, console可以通过HDMI正常显示
 
-
-				More features can be added upon request.
+	H)　如果其他的功能需要被加入，欢迎提出issue或者pull request
 				
 				
-Instructions for using the Bionic-Builder
+Bionic-Builder的使用说明
 
-Note: This build script is made for running on Ubuntu or a Debain System. UBUNTU 16.04 has a issue with MAN-DB so this will not work on ubuntu 16.04. Option 1 will not work on 16.04. The kernel building will still work on 16.04.
-I suggest using Ubuntu 18.04 to create the Bionic rootfs. I will add in a pre-downloaded rootfs to work around the ubuntu 16.04 problem.
+注意：此脚本需要在Ubuntu或Debain系统上运行。UBUNTU 16.04在构建rootfs时会遇到与MAN-DB有关的问题而卡住，所以选项1不适用于16.04。但是我们仍可以在Ubuntu 16.04上编译和安装内核。并且，下载apt的包需要耗费一定的时间，你可以直接从百度云盘下载构建好的rootfs，并解压缩到此脚本的目录下。这样，你只需要从选项2开始，就能构建你自己的内核了。
+我建议使用Ubuntu 18.04创建Bionic rootfs。我将添加一个预先下载的rootfs来解决ubuntu 16.04问题。
 
-The kernel is Cross-Compiled so you can not run the build script on the Hikey970 you must use a server or local Ubuntu / Debain system.
+在此脚本里，内核是交叉编译的，因此你无法在Hikey970上运行此脚本（在Hikey970上编译内核大约需要一辈子，人生苦短，我用工作站）。你必须使用服务器或本地的Ubuntu / Debain系统。
 
-1) Install the packages require for the build.
+
+1) 安装所需的软件包.
 
 		A) sudo apt-get install -y ccache python-pip build-essential kernel-package fakeroot libncurses5-dev 
 		   sudo apt-get install -y libssl-dev gcc  git-core gnupg 
 		   sudo apt-get install -y binfmt-support qemu qemu-user-static debootstrap simg2img
 		
-		B) Install Git if git is not installed yet.
+        B) 摇身一变成为超级用户：
+        　　sudo -s
 
-			1) 	cd ~/
-				sudo mkdir ~/bin
-				sudo nano .bashrc
-				
-			2)	{at the end of bashrc paste the below path.}
-				export PATH=~/bin:$PATH
-				source .bashrc
-			3) DOWNLOAD THE REPO TOOL
-				curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
-				chmod a+x ~/bin/repo
-			
-			4) SETUP YOUR GITHUB ACCOUNT
-				git config --global user.name "???"
-				git config --global user.email "???@gmail.com"
-		C)  Clone repo and Start the Build Script
-
-			1.)	cd ~/
-			2.)  	git clone https://github.com/Bigcountry907/Bionic-Builder.git
-			3.)	cd ~/Bionic-Builder
-			4.)     sudo -s
-			5.)   ./BB.sh
-
-
-
+		C) 执行脚本
+            ./BB.sh
 
 					Welcome to the Bionic-Builder Main Menu
 
@@ -107,140 +59,55 @@ The kernel is Cross-Compiled so you can not run the build script on the Hikey970
 
 
 
-THE BIONIC-BUILDER MENU OPTIONS
+BIONIC-BUILDER菜单选项
 
-	(1) CREATE MINIMAL BASE ROOT FILESYSTEM
+（1）创建MINIMAL BASE ROOT FILESYSTEM。如果你只想编译自己的内核，那么你可以跳过选项1，直接从选项2开始执行。
 
-	TO BUILD THE KERNEL ONLY SKIP TO OPTION 2. YOU DON'T HAVE TO RUN OPTION 1!	
-		
-	A) Option number one uses debootstrap to download the base root filesystem.
-	    The rootfs will be located at ~/Bionic-Builder/Ubuntu-SRC/build/rootfs.
 
-	    When you choose option 1 the base rootfs is created, during the creation you will be
-	    prompted for the USERNAME and PASSWORD to log in to the Hikey 970.
+    A) 第一个选项使用debootstrap来下载基本根文件系统。rootfs将位于 主目录/Ubuntu-SRC/build/rootfs。
 
-	    I have added 3 mirrors where the packages can be downloaded from. You will be
-	    prompted to select a mirror. During the selection you can choose to input your own
-	    Mirror if you know of one.
+        当你选择选项1时，将创建基本rootfs，你将在创建期间创建提示输入USERNAME和PASSWORD以登录Hikey 970。如果你使用我预先创建好的rootfs，那么用户名和密码都将是: zrji
 
-	    You will also be prompted for WIFI Configuration. Enter your access point name and
-	    password for your wireless network. WIFI will then work automatically on first boot.
+    B) 原作者添加了3个apt的包镜像，个人推荐第一个镜像。你也可以指定自己的镜像，但是arm64的镜像是如此的稀有，而且大部分都在中国大陆境内（上海交通大学好像有一个镜像），从我这里访问是如此的慢。
+    
+    C) 默认语言将设置为英语。 此时，你已经拥有了一个完整的rootfs，你永远不需要再次运行选项1，除非你想建立一个新的rootfs或者消磨时间。
 
-	    The default language will be set to English. After the completion of option 1 the rootfs
-	    is configured and ready for booting. At this point you never need to run option 1 again 
-	    unless you want to start a complete NEW Build. 
+    D) 你可以通过执行 chroot 主目录/Ubuntu-SRC/build/rootfs 来切换你的运行系统的root到 主目录/Ubuntu-SRC/build/rootfs。在此之后，你可以执行添加用户和安装包之类的操作。请记住，~~西瓜越大，西瓜皮就越大~~在此阶段添加的包越多，system.img就越大。
 
-	  B) You can chroot ~/Bionic-Builder/Ubuntu-SRC/build/rootfs and that will switch the
-	    root of your running system to the ~/Bionic-Builder/Ubuntu-SRC/build/rootfs.
+    E) 纵使你此时无比的兴奋，你还不能创建img然后flash到你的Hikey970。你还需要编译内核，设备树以及讲modules安装到kernel中。但是不必担心，选项２和选项３将帮助你完成这些步骤。
 
-	    After running chroot you can do things like add users and install packages.
-	    Remember that the more you add in this stage the larger the system.img will be.
-	    After you are done making changes type exit to get out of the chroot.
 
-	  C) Before you can create a sparse image to flash to hikey 970 you need to build the
-	      kernel, device tree, and install the kernel modules. Options 2 and 3 will do this
-	      automatically. 
+(2)  编译 LINUX v4.9.78
 
-			If you have a KERNEL build already that you would like to use then
-			you can manually copy the Image-hikey970-v4.9.gz and kirin970-hikey970.dtb to 
-			~/Bionic-Builder/Ubuntu-SRC/build/rootfs/boot/
-			Copy your kernel modules to: ~/Bionic-Builder/Ubuntu-SRC/build/rootfs/lib/modules/
+    A）此选项将自动下载ARM64交叉编译工具链和内核源代码。此两者只会被下载一次。
 
-	  D) After option 1 is complete run option 2 or manually install the kernel. Once the kernel and 
-	      Modules are installed you can run option 4 to generate a sparse flash-able system image.
-	     ALL COMPLETED FILES WILL BE FOUND IN ~/Bionic-Builder/Install/
+        内核 REPO：　https://github.com/Bigcountry907/linux.git -b hikey970-v4.9-Debain-Working
+
+
+    B）内核构建菜单
+
+        选择选项B将自动执行所有内核构建操作。
+
+        选择选项C将运行make menuconfig并允许你更改配置。
+
+        运行选项B或C后选择选项O将运行make oldconfig
+
+    C）内核编译完成后，你可以在　主目录/Install/kernel-install/找到内核：Image-hikey970-v4.9.gz　和设备树：kirin970-hikey970.dtb
 
 
 
+(3)  复制内核和设备树并安装内核modules到rootfs中
+
+    A) 在ROOTFS中复制内核和设备树/安装内核模块
+
+        此选项将复制Image-hikey970-v4.9.gz和kirin970-hikey970.dtb到rootfs/boot中。
+
+        内核模块也将自动安装到相应的目录中：rootfs/lib/modules/$ {uname -r}
 
 
 
+(４)  生成fastboot flash所需要的镜像文件
 
-BUILDING HIKEY 970 DEBAIN / UBUNTU KERNEL v4.9.78
+    A）运行选项＃1选项＃2和选项＃3后，你就可以利用选项4来创建了用于fastboot flash的镜像。
 
-	(2)  BUILD KERNEL LINUX v4.9.78
-
-		A) Option number two will automatically download the ARM64 tool-chain for cross-compile.
-		    The kernel source will be downloaded as well. It will only download one time. After the
-		    tool-chain and kernel source are downloaded the KERNEL-BUILD Menu will display.
-
-		The Kernel Source Directory 
-		~/Bionic-Builder/Kernel-SRC/linux
-		GITHUB REPO
-		https://github.com/Bigcountry907/linux.git -b hikey970-v4.9-Debain-Working
-		   
-		The Tool-Chain Directory 
-		~/Bionic-Builder/Tool-Chain/gcc-arm-8.2
-		Tool-Chain Source 
-		https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads
-
-		B) Kernel Building Menu
-
-			Choosing option B will automatically perform all kernel build operations.
-
-			Choosing option C will run make menuconfig and allow you to change configuration.
-
-			Choosing option O after running option B or C will run make oldconfig
-
-		C) After the kernel build is complete you can find the kernel Image-hikey970-v4.9.gz 
-		    and the device tree kirin970-hikey970.dtb in the following path
-			~/Bionic-Builder/Install/kernel-install/
-
-		    The modules will be compressed into file Kernel-Install.tar.gz and the script 
-		    K-INST.sh will be found there also.
-
-		D) Installing the kernel
-
-		 	A) For automatic kernel installation into the rootfs USE -->> option 3.
-
-			B) If you have already flashed the hikey 970 with a system image and you only need 
-			   to install the kernel on the board the K-INST.sh can be used.
-
-			#1 Copy K-INST.sh from ~/Bionic-Builder/Install to ~/ on hikey 970.
-			#2 Copy Kernel-Install.tar.gz from ~/Bionic-Builder/Install to ~/ on hikey 970.
-			#3 sudo -s		<<-- ON Hikey 970
-			#4 ./K-INST.sh	<<-- ON Hikey 970
-			After running k-inst.sh The kernel the device tree and the modules are
-      			copied to the correct locations on the hikey 970.
-
-
-AUTOMATIC INSTALL HIKEY 970 DEBAIN / UBUNTU KERNEL v4.9.78
-
-	(3)  COPY KERNEL & DEVICE TREE / INSTALL KERNEL MODULES in ROOTFS
-
-		A) Option number THREE will copy the Image-hikey970-v4.9.gz and kirin970-hikey970.dtb 		    
-    			to the rootfs. ~/Bionic-Builder/Ubuntu-SRC/build/rootfs/boot/
-
-		    The kernel modules will also be automatically installed to the proper directory :
-			~/Bionic-Builder/Ubuntu-SRC/build/rootfs/lib/modules/${uname -r}
-
-		NOTE: If you are not building the complete system image and are just building the kernel
-		to install on the Hikey970 board follow the previous instructions. D) Installing the kernel
-
-
-GENERATE ROOTFS IMAGE FOR FASTBOOT FLASH 
-
-	(4)  GENERATE FLASHABLE AND COMPRESSED IMAGES
-
-	 	A) after you have run option #1 option #2 and option #3 you are ready to create the 		    
-   		    image that will be used for fastboot flash. Run option 4 completes the build.
-
-	 	B) If you make changes to the rootfs or to grub.cfg you can do that in the build.
-		    The rootfs is at ~/Bionic-Builder/Ubuntu-SRC/build/rootfs/
-		    You can make any changes you like to the rootfs and simply create a new rootfs image 		    
-       		    for flashing by running option 4 again. There is no need to run option 1 again.
-
-		C) You can modify and rebuild the Kernel using option 2. Then use option 3 to install the 		    
-    		   new Kernel. After using option 2 and 3 you can use option 4 to create a new image that 		    
-   	  	   has the updated kernel. There is no need to run option 1 again.
-
-		 D) You can chroot ~/Bionic-Builder/Ubuntu-SRC/build/rootfs/ this will switch your running 		     
-	     	    systems root to ~/Bionic-Builder/Ubuntu-SRC/build/rootfs/. Meaning any commands you 		     
-     	 	    run in the chroot environment are applied to your build.
-			~/Bionic-Builder/Ubuntu-SRC/build/rootfs/
-			For example sudo apt-get update sudo apt-get upgrade.
-			The update and the upgrade are applied to your build and not the host machine.
-
-			NOTE: Type exit to end the chroot !!
-
-			After you have made your changes run option 4. You guessed it. !!
+    Ｂ）你可以使用选项2修改和重新编译内核。然后使用选项3安装新内核。在之后，你可以使用选项4来创建新的img。无需再次运行选项1。

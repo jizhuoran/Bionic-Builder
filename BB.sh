@@ -16,9 +16,8 @@ nl=$(tput sgr0)
 
 #################### PATH DEFINITION #######################
 
-cd
 ###Main Directory
-bb1=$(pwd)/Bionic-Builder
+bb1=$(pwd)
 ###SRC stage Directory $(pwd)/Bionic-Builder/Ubuntu-SRC/
 bbb2=$bb1/Ubuntu-SRC
 ###SRC BUILD Directory $(pwd)/Bionic-Builder/Ubuntu-SRC/build
@@ -35,7 +34,7 @@ bb6=$bb3/lib
 bb7=$bb3/root
 ### Directory $(pwd)/Bionic-Builder/Ubuntu-SRC/build/rootfs/boot/EFI
 bb8=$bb4/EFI
-### Directory $(pwd)/Bionic-Builder/Ubuntu-SRC/build/rootfs/boot/grub
+### Directory $(pwd)/Bionic-Builder/home/zrji/Bionic-Builder/Binaries/grub.cfg
 bb9=$bb4/grub
 ### Directory $(pwd)/Bionic-Builder/Ubuntu-SRC/build/rootfs/boot/EFI/BOOT
 bb10=$bb8/BOOT
@@ -114,7 +113,7 @@ BLDKER () {
 			export ARCH=arm64
 			make ARCH=arm64 mrproper
 			make ARCH=arm64 hikey970_defconfig
-			make ARCH=arm64 -j20
+			make ARCH=arm64 -j $(thread)
 			INSKER2
 			CMP
 		elif [[ $REPLY = "c" ]] || [[ $REPLY = "C" ]]; then
@@ -126,9 +125,10 @@ BLDKER () {
 			aarch64-linux-gnu-gcc --version
 			cd $ksrc1
 			export ARCH=arm64
+			make ARCH=arm64 mrproper
 			make ARCH=arm64 hikey970_defconfig
 			make menuconfig
-			make ARCH=arm64 -j20
+			make ARCH=arm64 -j $(thread)
 			INSKER2
 			CMP
 		elif [[ $REPLY = "o" ]] || [[ $REPLY = "O" ]]; then
@@ -141,7 +141,7 @@ BLDKER () {
 			cd $ksrc1
 			export ARCH=arm64
 			make ARCH=arm64 oldconfig
-			make ARCH=arm64 -j20
+			make ARCH=arm64 -j $(thread)
 			INSKER2
 			CMP
 		elif [[ $REPLY = "x" ]] || [[ $REPLY = "X" ]]; then	
@@ -392,6 +392,8 @@ MRTFS () {
 	chmod 755 $bb21
 	mkdir $bb22
 	chmod 755 $bb22
+	mkdir $bb5/OpenCL
+	mkdir $bb5/OpenCL/vendors
 }
 
 GRUB () {
@@ -459,7 +461,7 @@ CPFS () {
 	chmod 775 $bb5/rc.local
 	echo "$bb5/rc.local" $CRE
 	clear
-	NETCFG
+	# NETCFG
 	touch $bb11/01-dhcp.yaml
 	chmod 755 $bb11/01-dhcp.yaml
 	echo "network:" | sudo tee -a $bb11/01-dhcp.yaml
@@ -469,22 +471,24 @@ CPFS () {
 	echo "     enp6s0:" | sudo tee -a $bb11/01-dhcp.yaml
 	echo "        dhcp4: true" | sudo tee -a $bb11/01-dhcp.yaml
 	echo "        dhcp6: true" | sudo tee -a $bb11/01-dhcp.yaml
-	echo "network:" | sudo tee -a $bb11/01-dhcp.yaml
-	echo "    version: 2" | sudo tee -a $bb11/01-dhcp.yaml
-	echo "    wifis:" | sudo tee -a $bb11/01-dhcp.yaml
-	echo "        wlan0:" | sudo tee -a $bb11/01-dhcp.yaml
-	echo "             renderer: NetworkManager" | sudo tee -a $bb11/01-dhcp.yaml
-	echo "             dhcp4: true" | sudo tee -a $bb11/01-dhcp.yaml
-	echo "             dhcp6: true" | sudo tee -a $bb11/01-dhcp.yaml
-	echo "             access-points:" | sudo tee -a $bb11/01-dhcp.yaml
-	echo "                 $ap" | sudo tee -a $bb11/01-dhcp.yaml
-	echo "                     password: $pw" | sudo tee -a $bb11/01-dhcp.yaml		
+	clear
+	echo "$bb21/libmali.so" > $bb5/OpenCL/vendors/libmali.so
+	# echo "network:" | sudo tee -a $bb11/01-dhcp.yaml
+	# echo "    version: 2" | sudo tee -a $bb11/01-dhcp.yaml
+	# echo "    wifis:" | sudo tee -a $bb11/01-dhcp.yaml
+	# echo "        wlan0:" | sudo tee -a $bb11/01-dhcp.yaml
+	# echo "             renderer: NetworkManager" | sudo tee -a $bb11/01-dhcp.yaml
+	# echo "             dhcp4: true" | sudo tee -a $bb11/01-dhcp.yaml
+	# echo "             dhcp6: true" | sudo tee -a $bb11/01-dhcp.yaml
+	# echo "             access-points:" | sudo tee -a $bb11/01-dhcp.yaml
+	# echo "                 $ap" | sudo tee -a $bb11/01-dhcp.yaml
+	# echo "                     password: $pw" | sudo tee -a $bb11/01-dhcp.yaml		
 }
 
 MKIMG () {
 DISTRO=${DISTRO:-"bionic"}
 VERSION=V-2.0
-SYSTEM_SIZE=${SYSTEM_SIZE:-'2560'} # 1G
+SYSTEM_SIZE=${SYSTEM_SIZE:-'1560'} # 1G
 echo "Building image" $SYSTEM_SIZE
 dd if=/dev/zero of=$bb2/rootfs.img bs=1M count=$SYSTEM_SIZE conv=sparse
 mkfs.ext4 -L rootfs $bb2/rootfs.img
@@ -613,7 +617,7 @@ sudo chroot $bb3 /root/init.sh
 DLSRC () {
 DISTRO=${DISTRO:-"bionic"}
 MIRRORS=${MIRRORS:-}
-SOFTWARE=${SOFTWARE:-"ssh,zsh,tmux,linux-firmware,vim-nox,net-tools,network-manager,wget,tasksel,gnupg2,nano,net-tools,wpasupplicant,parted,fakeroot,kernel-wedge,build-essential,python-pip,kernel-package,ccache,libssl-dev,gcc"}
+SOFTWARE=${SOFTWARE:-"ssh,zsh,tmux,linux-firmware,vim-nox,net-tools,network-manager,wget,tasksel,gnupg2,nano,net-tools,wpasupplicant,parted,fakeroot,kernel-wedge,build-essential,python-pip,kernel-package,ccache,libssl-dev,gcc,git,ocl-icd-opencl-dev,ocl-icd-dev,clinfo"}
 qemu-debootstrap --arch arm64 --include=$SOFTWARE --components=main,multiverse,universe $DISTRO $bb3 $mirror
 }
 
@@ -850,11 +854,11 @@ echo ""
 c=5
 REWRITE="\e[25D\e[1A\e[K"
 echo "Starting..."
-while [ $c -gt 0 ]; do 
-    c=$((c-1))
-    sleep 1
-    echo -e "${REWRITE}$c"
-done
+# while [ $c -gt 0 ]; do 
+#     c=$((c-1))
+#     sleep 1
+#     echo -e "${REWRITE}$c"
+# done
 echo -e "${REWRITE}Done."
 ### Check required packages
 echo "Dependency check"
